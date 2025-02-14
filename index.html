@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BugBountyHub | Ethical Hacking Resources</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Roboto:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #0A0F1F;
+            --neon-green: #00FF88;
+            --accent-blue: #00C8FF;
+            --glass-bg: rgba(10, 15, 30, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--dark-bg);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 5%;
+            backdrop-filter: blur(10px);
+            background: var(--glass-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.5rem;
+            color: var(--neon-green);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--neon-green);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            background: linear-gradient(45deg, #0A0F1F, #1A1F2F);
+        }
+
+        .hero-content {
+            z-index: 1;
+            max-width: 800px;
+            padding: 2rem;
+        }
+
+        .hero h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .cta-buttons {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--neon-green);
+            color: var(--dark-bg);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        /* Featured Content Grid */
+        .featured-grid {
+            padding: 4rem 5%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(0, 255, 136, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+        }
+
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .tag {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--neon-green);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        /* Terminal Animation */
+        .terminal {
+            background: #000;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 2rem;
+            font-family: 'Space Mono', monospace;
+            position: relative;
+        }
+
+        .terminal::before {
+            content: '$';
+            position: absolute;
+            left: 10px;
+            color: var(--neon-green);
+        }
+
+        .terminal-text {
+            margin-left: 1.5rem;
+            color: var(--neon-green);
+        }
+
+        /* Particles Animation */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(0, 200, 255, 0.5);
+            border-radius: 50%;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="logo">
+            <span>🛡️</span>
+            BugBountyHub
+        </div>
+        <div class="nav-links">
+            <a href="#writeups">Write-Ups</a>
+            <a href="#tools">Tools</a>
+            <a href="#challenges">Challenges</a>
+            <a href="#about">About</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="particles" id="particles"></div>
+        <div class="hero-content">
+            <h1>Hack the Planet.<br>Secure the Code.</h1>
+            <p class="subtitle">Bug Bounty Write-Ups, Tools, and Ethical Hacking Insights</p>
+            <div class="cta-buttons">
+                <button class="btn btn-primary">Explore Write-Ups</button>
+                <button class="btn btn-outline">Join Community</button>
+            </div>
+            <div class="terminal">
+                <span class="terminal-text" id="terminal-text"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Content Grid -->
+    <section class="featured-grid">
+        <!-- Cards would be dynamically generated -->
+        <div class="card">
+            <h3>DOM XSS in Acme Corp</h3>
+            <div class="tags">
+                <span class="tag">XSS</span>
+                <span class="tag">Web App</span>
+                <span class="tag">$5000</span>
+            </div>
+            <p>Full exploit walkthrough demonstrating DOM-based XSS vulnerability...</p>
+        </div>
+        <!-- More cards... -->
+    </section>
+
+    <script>
+        // Particles Animation
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = Math.random() * 3 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particles.appendChild(particle);
+                
+                // Animation
+                particle.animate([
+                    { transform: 'translateY(0)', opacity: 1 },
+                    { transform: 'translateY(-100vh)', opacity: 0 }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    iterations: Infinity
+                });
+            }
+        }
+
+        // Terminal Typing Effect
+        const commands = [
+            'nmap -p 443 acme.com',
+            'sqlmap -u "https://target.com/search?q=1"',
+            'ffuf -w wordlist.txt -u https://target.com/FUZZ'
+        ];
+
+        let commandIndex = 0;
+        let charIndex = 0;
+        const terminalText = document.getElementById('terminal-text');
+
+        function typeCommand() {
+            if (charIndex < commands[commandIndex].length) {
+                terminalText.textContent += commands[commandIndex].charAt(charIndex);
+                charIndex++;
+                setTimeout(typeCommand, 50);
+            } else {
+                setTimeout(eraseCommand, 1500);
+            }
+        }
+
+        function eraseCommand() {
+            if (charIndex > 0) {
+                terminalText.textContent = commands[commandIndex].substring(0, charIndex - 1);
+                charIndex--;
+                setTimeout(eraseCommand, 30);
+            } else {
+                commandIndex = (commandIndex + 1) % commands.length;
+                setTimeout(typeCommand, 500);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            typeCommand();
+        });
+    </script>
+</body>
+</html>
