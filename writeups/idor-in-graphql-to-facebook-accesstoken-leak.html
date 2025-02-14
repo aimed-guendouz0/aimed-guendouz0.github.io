@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            :root {
+                --hacker-green: #00ff88;
+                --dark-bg: #0a0f1f;
+                --accent-blue: #00c8ff;
+                --glass-bg: rgba(10, 15, 30, 0.9);
+            }
+            
+            body {
+                font-family: 'Inter', system-ui, sans-serif;
+                line-height: 1.6;
+                max-width: 800px;
+                margin: 2rem auto;
+                padding: 0 1rem;
+                background: var(--dark-bg);
+                color: #e0e0e0;
+            }
+            
+            h1 {
+                color: var(--hacker-green);
+                font-family: 'Space Mono', monospace;
+                border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+                padding-bottom: 0.5rem;
+                text-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+            }
+            
+            h2 {
+                color: var(--accent-blue);
+                margin: 2rem 0 1rem;
+                padding-left: 0.5rem;
+                border-left: 3px solid var(--accent-blue);
+            }
+            
+            h4 {
+                color: var(--hacker-green);
+                margin: 1.5rem 0 0.5rem;
+            }
+            
+            a {
+                color: var(--hacker-green);
+                text-decoration: none;
+                position: relative;
+                transition: color 0.3s;
+            }
+            
+            a:hover {
+                color: #fff;
+                text-shadow: 0 0 8px var(--hacker-green);
+            }
+            
+            a::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                width: 0;
+                height: 1px;
+                background: var(--hacker-green);
+                transition: width 0.3s;
+            }
+            
+            a:hover::after {
+                width: 100%;
+            }
+            
+            ol {
+                background: rgba(0, 200, 255, 0.05);
+                padding: 1.5rem 2rem;
+                border-radius: 6px;
+                border: 1px solid rgba(0, 200, 255, 0.1);
+                margin: 1rem 0;
+            }
+            
+            li {
+                margin: 0.5rem 0;
+                padding: 0.3rem 0.5rem;
+                position: relative;
+            }
+            
+            li::before {
+                content: '➔';
+                color: var(--hacker-green);
+                margin-right: 0.8rem;
+            }
+            
+            strong {
+                color: var(--hacker-green);
+                font-weight: 500;
+            }
+            
+            /* Vulnerability Highlight */
+            .vuln-detail {
+                background: linear-gradient(145deg, #0d0d16, #14141f);
+                padding: 1.5rem;
+                margin: 2rem 0;
+                border-radius: 8px;
+                border: 1px solid rgba(0, 255, 136, 0.2);
+                box-shadow: 0 0 15px rgba(0, 255, 136, 0.1);
+            }
+            
+            .vuln-detail p {
+                margin: 0.8rem 0;
+            }
+            
+            /* Code/Technical Highlights */
+            .code-snippet {
+                font-family: 'Fira Code', monospace;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 1rem;
+                border-radius: 4px;
+                border-left: 3px solid var(--hacker-green);
+                margin: 1rem 0;
+            }
+            
+            /* Images */
+            img {
+                max-width: 100%;
+                border-radius: 6px;
+                margin: 1rem 0;
+                border: 1px solid rgba(0, 200, 255, 0.2);
+                box-shadow: 0 0 15px rgba(0, 200, 255, 0.1);
+            }
+            
+            /* Severity Badge */
+            .severity {
+                display: inline-block;
+                padding: 0.3rem 1rem;
+                background: rgba(255, 0, 0, 0.15);
+                color: #ff4d4d;
+                border-radius: 20px;
+                font-weight: bold;
+                margin: 1rem 0;
+                animation: pulse 2s infinite;
+            }
+            
+            @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4); }
+                70% { box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+            }
+            
+            @media (max-width: 768px) {
+                body {
+                    padding: 0 1rem;
+                    margin: 1rem auto;
+                }
+                
+                h1 {
+                    font-size: 1.8rem;
+                }
+                
+                h2 {
+                    font-size: 1.4rem;
+                }
+            }
+            </style>
+    </head>
+<body>
+<h1>IDOR in graphql lead to facebook access token leak</h1>
+<h2>Target</h2>
+<p>The target was a restaurant booking website, which enables users to signup, search, book restaurants</p>
+<h4>What is graphql</h4>
+<p>If you are not familiar with graphql here is an explanation from our friend deepseek:</p>
+<p>GraphQL is a query language for APIs that lets clients request exact data they need (no over/under-fetching). Unlike
+    REST:</p>
+<ol>
+    <li>Single endpoint for all operations in my case: <a
+            href="http://domain.com/api/graphql">domain.com/api/graphql</a></li>
+    <li>Client-defined queries (request specific fields/relationships)</li>
+    <li>Strongly typed schema (self-documenting)</li>
+    <li>Real-time via subscriptions</li>
+</ol>
+<h2>How i found the bug</h2>
+<p>First, I used the website as a normal user, and i noticed that it uses <strong>graphql</strong> to fetch restaurants
+    public information such as name, address…etc using restaurant id,</p>
+<img src="blog3.png" alt="">
+<p>The graphql endpoint was <a href="">domain.com/api/graphql</a>, I checked introspection and it was disabled, and
+    suggestions was disabled also. <a
+        href="https://portswigger.net/kb/issues/00200513_graphql-suggestions-enabled">portswigger reference</a></p>
+<p>Then, i tried to find other graphql endpoint in other subdomains, so I used this <a
+        href="https://raw.githubusercontent.com/projectdiscovery/nuclei-templates/9b8da6f22de63f2a146aa3e425bb40abd33f5e32/http/technologies/graphql-detect.yaml">nuclei
+        template</a></p>
+<p>After that, I found other graphql endpoint, I checked every endpoint and I found one like <a
+        href="">sub.domain.com/api/graphql</a> that has <a
+        href="https://portswigger.net/kb/issues/00200513_graphql-suggestions-enabled">graphql suggestions enabled</a> (I
+    observed that when i use incomplete fields or a non existing fields, i get some suggestions)</p>
+<img src="blog1.png">
+<p>After that, an idea came to my mind, I downloaded this wordlist: <a
+        href="https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/10k/fieldWordlist-10k.txt">https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/10k/fieldWordlist-10k.txt</a>
+    and fuzzed the fields with burp intruder.</p>
+<p>A field captures my attention, it was <strong>facebookIntegration</strong>, but it requires subfields.</p>
+<img src="blog2.png" alt="">
+<p>so i used the same wordlist to fuzz the subfields and i found the subfield: <strong>accessToken</strong> which leak
+    facebook accessToken, with this token i was able to access restaurant’s ads campaign and other information.</p>
+</body>
+</html>
