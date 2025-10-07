@@ -232,6 +232,22 @@ This approach got me some bugs as the app seems to use only client-side validati
 </code></pre><p><strong>The working one</strong></p>
 <pre><code><span class="hljs-built_in">window</span>.grecaptcha.enterprise.execute( <span class="hljs-string">'site_key'</span>, {<span class="hljs-attr">action</span>: <span class="hljs-string">'action_name'</span>}).then(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">token</span>) </span>{ <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Your reCAPTCHA token is:"</span>); <span class="hljs-built_in">console</span>.log(token); });
 </code></pre><p>After I got the token, the request worked successfully and I obtained access to a premium feature for free</p>
+
+<h2 id="bug-6-">Bug 6:</h2>
+<p>In another target, I found a deprecated endpoint in JavaScript, at first glance, it works normally and I didn&#39;t find any access control issue on it, but when I used an invalid input, the endpoint accepted it and saved it to the database, this caused the admin dashboard to crash.
+This attack didn&#39;t work on the main endpoint (non deprecated one) since it rejected the invalid input directly.</p>
+<h2 id="tips">Tips</h2>
+<ol>
+<li>After testing the functionalities on a target and testing the visible endpoints, dig deeper and extract endpoints from javascript files.</li>
+<li>Use Auth analyzer for easy multiple role testing</li>
+<li>Take a look at the admin settings and app documentations to see what a user should have access to and what not</li>
+<li>If you have <code>PUT /api/endpoint/object/data</code> try:<ol>
+<li>change method, eg: <code>POST /api/endpoint/object/data</code></li>
+<li>try accessing the parent endpoint  <code>/api/endpoint/object</code></li>
+</ol>
+</li>
+<li>If you find an endpoint in js that is similar to one actively used by the app then it may be a deprecated, worth spending more time on it</li>
+</ol>
 </body>
 <foot>
 <h4> Contact me for any questions at X: @AimedGuendouz</h4>
