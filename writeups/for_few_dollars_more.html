@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+    <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DNGN03H4KL"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-DNGN03H4KL');
+</script>
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Few Dollars More (Bug Bounty edition)</title>
+	<!-- Open Graph (used by Facebook, LinkedIn, etc.) -->
+	<meta property="og:title" content="For a Few Dollars More (Bug Bounty Edition)" />
+	<meta property="og:description" content="A bug bounty write-up" />
+	<meta property="og:image" content="https://raw.githubusercontent.com/aimed-guendouz0/aimed-guendouz0.github.io/refs/heads/main/writeups/for_few_dollars_more.png" />
+	<meta property="og:url" content="https://raw.githubusercontent.com/aimed-guendouz0/aimed-guendouz0.github.io/refs/heads/main/writeups/for_few_dollars_more.html" />
+	<meta property="og:type" content="article" />
+
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="For a Few Dollars More (Bug Bounty Edition)" />
+	<meta name="twitter:description" content="A bug bounty write-up" />
+	<meta name="twitter:image" content="https://raw.githubusercontent.com/aimed-guendouz0/aimed-guendouz0.github.io/refs/heads/main/writeups/for_few_dollars_more.png" />
+	<meta name="twitter:creator" content="@AimedGuendouz" />
+
+        <style>
+            :root {
+                --hacker-green: #00ff88;
+                --dark-bg: #0a0f1f;
+                --accent-blue: #00c8ff;
+                --glass-bg: rgba(10, 15, 30, 0.9);
+            }
+            
+            body {
+                font-family: 'Inter', system-ui, sans-serif;
+                line-height: 1.6;
+                max-width: 800px;
+                margin: 2rem auto;
+                padding: 0 1rem;
+                background: var(--dark-bg);
+                color: #e0e0e0;
+            }
+            
+            h1 {
+                color: var(--hacker-green);
+                font-family: 'Space Mono', monospace;
+                border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+                padding-bottom: 0.5rem;
+                text-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+            }
+            
+            h2 {
+                color: var(--accent-blue);
+                margin: 2rem 0 1rem;
+                padding-left: 0.5rem;
+                border-left: 3px solid var(--accent-blue);
+            }
+            
+            h4 {
+                color: var(--hacker-green);
+                margin: 1.5rem 0 0.5rem;
+            }
+            
+            a {
+                color: var(--hacker-green);
+                text-decoration: none;
+                position: relative;
+                transition: color 0.3s;
+            }
+            
+            a:hover {
+                color: #fff;
+                text-shadow: 0 0 8px var(--hacker-green);
+            }
+            
+            a::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                width: 0;
+                height: 1px;
+                background: var(--hacker-green);
+                transition: width 0.3s;
+            }
+            
+            a:hover::after {
+                width: 100%;
+            }
+            
+            ol {
+                background: rgba(0, 200, 255, 0.05);
+                padding: 1.5rem 2rem;
+                border-radius: 6px;
+                border: 1px solid rgba(0, 200, 255, 0.1);
+                margin: 1rem 0;
+            }
+            
+            li {
+                margin: 0.5rem 0;
+                padding: 0.3rem 0.5rem;
+                position: relative;
+            }
+            
+            li::before {
+                content: '➔';
+                color: var(--hacker-green);
+                margin-right: 0.8rem;
+            }
+            
+            strong {
+                color: var(--hacker-green);
+                font-weight: 500;
+            }
+            
+            /* Vulnerability Highlight */
+            .vuln-detail {
+                background: linear-gradient(145deg, #0d0d16, #14141f);
+                padding: 1.5rem;
+                margin: 2rem 0;
+                border-radius: 8px;
+                border: 1px solid rgba(0, 255, 136, 0.2);
+                box-shadow: 0 0 15px rgba(0, 255, 136, 0.1);
+            }
+            
+            .vuln-detail p {
+                margin: 0.8rem 0;
+            }
+            
+            /* Code/Technical Highlights */
+            .code-snippet {
+                font-family: 'Fira Code', monospace;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 1rem;
+                border-radius: 4px;
+                border-left: 3px solid var(--hacker-green);
+                margin: 1rem 0;
+            }
+            
+            /* Images */
+            img {
+                max-width: 100%;
+                border-radius: 6px;
+                margin: 1rem 0;
+                border: 1px solid rgba(0, 200, 255, 0.2);
+                box-shadow: 0 0 15px rgba(0, 200, 255, 0.1);
+            }
+            
+            /* Severity Badge */
+            .severity {
+                display: inline-block;
+                padding: 0.3rem 1rem;
+                background: rgba(255, 0, 0, 0.15);
+                color: #ff4d4d;
+                border-radius: 20px;
+                font-weight: bold;
+                margin: 1rem 0;
+                animation: pulse 2s infinite;
+            }
+            
+            @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4); }
+                70% { box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+            }
+            
+            @media (max-width: 768px) {
+                body {
+                    padding: 0 1rem;
+                    margin: 1rem auto;
+                }
+                
+                h1 {
+                    font-size: 1.8rem;
+                }
+                
+                h2 {
+                    font-size: 1.4rem;
+                }
+            }
+            </style>
+    </head>
+<body>
+<img src="./for_few_dollars_more.png">
+<h1 id="target">Target</h1>
+<p>The target was an employee performance management and feedback platform</p>
+<h2 id="bug-1-bypass-of-reviewer-anonymity">Bug 1: Bypass of reviewer anonymity</h2>
+<p>When an admin create a feedback for a reviewee, he can choose to not show the reviewers list to the reviewee.</p>
+<p>The admin can inform the reviewer of this new feedback, so, I tried to test if the reviewee can also inform them (access control), but it wasn&#39;t successful 
+The request was like this:</p>
+<pre><code class="lang-HTTP"><span class="hljs-keyword">POST</span> <span class="hljs-string">/api/feedback/participants/[user</span> <span class="hljs-keyword">ID</span>]/nudge <span class="hljs-string">HTTP/2
+Host:</span> target.com
+<span class="hljs-attribute">Cookie</span>: (reviewee)
+<span class="hljs-attribute">Sec-Fetch-Dest</span>: empty
+<span class="hljs-attribute">Sec-Fetch-Mode</span>: cors
+<span class="hljs-attribute">Sec-Fetch-Site</span>: same-origin
+<span class="hljs-attribute">Priority</span>: u=0
+<span class="hljs-attribute">Te</span>: trailers
+</code></pre>
+<p>The response was a 403, then I came with the idea to use a user ID that is not participant in the feedback, this resulted in a 500 status code and it enabled the reviewee to enumerate the reviewers list</p>
+<h2 id="bug-2-survey-confidentiality-and-anonymity-bypass">Bug 2: Survey Confidentiality and Anonymity bypass</h2>
+<p>In the survey, an admin can&#39;t see who wrote any answer, this was part of the application feature.</p>
+<p>I noticed that after the admin remove a user from the survey, his answers will be deleted, but, when he re-add the user to the survey, the answers will be re-added automatically, this enabled the admin to see who wrote any answer without altering survey data after the exploit.</p>
+<h2 id="bug-3-bypass-of-admin-settings-similar-bugs-">Bug 3: Bypass of admin settings (similar bugs)</h2>
+<p>What I did is that:</p>
+<ol>
+<li>In the admin setting, I enable the users to do something</li>
+<li>As the user, do the something and capture the request with burp</li>
+<li>As the admin, disable the setting</li>
+<li>As the user, repeat the request in burp
+This approach got me some bugs as the app seems to use only client-side validation</li></ol>
+<p>Examples:</p>
+<ol> 
+<li>I was able (as a user) to unshare my feedback after the admin close the cycle</li>
+<li>A user (reviewee) can add a special message to the reviewers even when the admin disable that setting</li>
+<li>Change of feedback status after cycle ends</li>
+</ol>
+<h2 id="bug-4-access-control">Bug 4: Access control</h2>
+<p>I mainly use the Auth analyzer extension in burp suite when hunting for this issue and I found that a reviewee can change the status of the reviewer feedback</p>
+<h2 id="bug-5-free-plan-users-can-access-paid-feature">Bug 5: Free plan users can access paid feature</h2>
+<p>This was in another target, but it was a bit interesting
+</p><p>After I tested the endpoints that I have captured with burp and didn&#39;t found nothing, I dumped all Javascript files from burp to my pc and used a script to extract all the endpoints that were in the js
+</p><p>I found an endpoint that seems to do the same thing as another one that i have captured earlier, but it was not used by the app, it was just inside the js
+</p><p>I read some of the javascript where the endpoint is mentioned and I found the required request data, the hard part was to get a valid recaptcha token, I spent a day searching for that and even chatgpt answer didn&#39;t work
+</p><p>The next day I searched the js on how it generated that recaptcha token and I found the working method to get one:</p>
+<strong>chatgpt answer</strong>
+<pre><code>grecaptcha.execute( <span class="hljs-string">'site_key'</span>, {<span class="hljs-attr">action</span>: <span class="hljs-string">'action_name'</span>}).then(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">token</span>) </span>{ <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Your reCAPTCHA token is:"</span>); <span class="hljs-built_in">console</span>.log(token); });
+</code></pre><p><strong>The working one</strong></p>
+<pre><code><span class="hljs-built_in">window</span>.grecaptcha.enterprise.execute( <span class="hljs-string">'site_key'</span>, {<span class="hljs-attr">action</span>: <span class="hljs-string">'action_name'</span>}).then(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">token</span>) </span>{ <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Your reCAPTCHA token is:"</span>); <span class="hljs-built_in">console</span>.log(token); });
+</code></pre><p>After I got the token, the request worked successfully and I obtained access to a premium feature for free</p>
+</body>
+<foot>
+<h4> Contact me for any questions at X: @AimedGuendouz</h4>
+
+</foot>
+</html>
