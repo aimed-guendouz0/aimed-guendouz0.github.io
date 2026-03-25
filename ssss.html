@@ -2,6 +2,6 @@
 fetch('https://digital-asset-manager-desired-service.crmmktg-branding-digitalassetmanager-prd.svc.cluster.local/graphql', {
   method: 'POST',
   headers: {'Content-Type': 'application/json'},
-  body: JSON.stringify({query: '{getAllBrandProfiles{accountId brandProfileId attributes{attributeName attributeValue}}}'})
+  body: JSON.stringify({query: 'mutationType fields{name args{name type} type{name}}'})
 }).then(r=>r.text()).then(t=>document.write(t)).catch(e=>document.write('err:'+e))
 </script>
